@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A4 Booklet Printer</title>
+  <meta name="description" content="Turn an A4 PDF into two print-ready PDFs: side 1 and side 2 for manual duplex booklet printing." />
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --panel: #ffffff;
+      --ink: #17181a;
+      --muted: #6a6f76;
+      --line: #e2e4e8;
+      --accent: #5b4fd8;
+      --accent-soft: #efedff;
+      --good: #147a5a;
+      --danger: #b42318;
+      --shadow: 0 12px 40px rgba(20,22,26,.08);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font: 15px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .shell { max-width: 1120px; margin: 0 auto; padding: 36px 20px 56px; }
+    header { display:flex; justify-content:space-between; gap:24px; align-items:flex-end; margin-bottom:24px; }
+    h1 { margin:0; font-size:32px; letter-spacing:-.03em; }
+    .sub { color:var(--muted); margin-top:7px; max-width:720px; }
+    .badge { background:#111; color:#fff; padding:8px 12px; border-radius:999px; font-size:12px; white-space:nowrap; }
+    .grid { display:grid; grid-template-columns: 1.1fr .9fr; gap:18px; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; }
+    .card h2 { font-size:18px; margin:0 0 12px; }
+    .drop {
+      border:2px dashed #c9ccd2; border-radius:16px; min-height:190px; display:flex;
+      align-items:center; justify-content:center; text-align:center; padding:28px; cursor:pointer;
+      transition:.15s ease; background:#fafbfc;
+    }
+    .drop:hover, .drop.drag { border-color:var(--accent); background:var(--accent-soft); }
+    .drop strong { display:block; font-size:18px; margin-bottom:7px; }
+    .drop span { color:var(--muted); }
+    input[type=file] { display:none; }
+    .filebox { display:none; margin-top:14px; padding:12px 14px; background:#f7f7f8; border:1px solid var(--line); border-radius:12px; }
+    .filebox.show { display:flex; justify-content:space-between; gap:12px; align-items:center; }
+    .filebox .name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600; }
+    .settings { display:grid; gap:14px; }
+    label { display:block; font-weight:700; margin-bottom:6px; }
+    select, button {
+      width:100%; min-height:44px; border-radius:12px; border:1px solid var(--line); background:#fff; color:var(--ink);
+      padding:0 12px; font:inherit;
+    }
+    select:focus, button:focus { outline:3px solid rgba(91,79,216,.15); border-color:var(--accent); }
+    .help { color:var(--muted); font-size:13px; margin-top:5px; }
+    .switchrow { display:flex; gap:10px; align-items:flex-start; }
+    .switchrow input { margin-top:4px; accent-color:var(--accent); width:17px; height:17px; }
+    .primary { background:var(--accent); color:#fff; border-color:var(--accent); font-weight:800; cursor:pointer; margin-top:2px; }
+    .primary:disabled { opacity:.45; cursor:not-allowed; }
+    .secondary { cursor:pointer; }
+    .status { margin-top:16px; min-height:24px; color:var(--muted); }
+    .status.good { color:var(--good); font-weight:700; }
+    .status.bad { color:var(--danger); font-weight:700; }
+    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:16px; }
+    .stat { background:#f8f8f9; border:1px solid var(--line); border-radius:13px; padding:12px; }
+    .stat b { display:block; font-size:20px; }
+    .stat span { color:var(--muted); font-size:12px; }
+    .preview { margin-top:18px; }
+    .sheet { border:1px solid var(--line); border-radius:14px; padding:14px; background:#fafafa; }
+    .sheet + .sheet { margin-top:12px; }
+    .sheettitle { display:flex; justify-content:space-between; color:var(--muted); font-size:12px; margin-bottom:8px; }
+    .a4 { display:grid; grid-template-columns:1fr 1fr; border:1px solid #bbbfc6; background:#fff; aspect-ratio:1.414 / 1; }
+    .half { display:flex; align-items:center; justify-content:center; position:relative; min-width:0; }
+    .half + .half { border-left:1px dashed #bfc2c8; }
+    .pnum { font-size:28px; font-weight:800; color:#22252a; }
+    .pblank { color:#a0a4aa; font-size:12px; }
+    .note { margin-top:14px; background:var(--accent-soft); border-radius:14px; padding:14px 16px; }
+    .note strong { display:block; margin-bottom:4px; }
+    .flow { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .pill { background:#fff; border:1px solid #d8d4ff; padding:6px 9px; border-radius:999px; font-size:12px; }
+    .footer { text-align:center; color:var(--muted); margin-top:26px; font-size:12px; }
+    @media (max-width:850px) { .grid { grid-template-columns:1fr; } header { align-items:flex-start; flex-direction:column; } .stats { grid-template-columns:repeat(2,1fr); } }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div>
+      <h1>A4 Booklet Printer</h1>
+      <div class="sub">Upload your A4 PDF. The app creates two separate A4 landscape PDFs: one for the first pass and one for the second pass. Fold the sheets in the middle and staple them into an A5 booklet.</div>
+    </div>
+    <div class="badge">Browser-only · no upload</div>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <h2>1. Source PDF</h2>
+      <label class="drop" id="drop">
+        <input id="file" type="file" accept="application/pdf,.pdf" />
+        <div>
+          <strong>Choose your A4 PDF</strong>
+          <span>or drag and drop it here</span>
+        </div>
+      </label>
+      <div class="filebox" id="filebox">
+        <div class="name" id="filename"></div>
+        <button class="secondary" id="clearBtn" type="button" style="width:auto;padding:0 14px">Change</button>
+      </div>
+
+      <div class="stats" id="stats" style="display:none">
+        <div class="stat"><b id="origPages">—</b><span>source pages</span></div>
+        <div class="stat"><b id="bookPages">—</b><span>booklet pages</span></div>
+        <div class="stat"><b id="sheets">—</b><span>A4 sheets</span></div>
+        <div class="stat"><b>A5</b><span>finished size</span></div>
+      </div>
+
+      <div class="preview" id="preview" style="display:none">
+        <h2>Sheet preview</h2>
+        <div class="help">The preview shows how the first few physical sheets will be imposed.</div>
+        <div id="sheetsPreview" style="margin-top:12px"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2. Print setup</h2>
+      <div class="settings">
+        <div>
+          <label for="backOrder">When feeding the second side</label>
+          <select id="backOrder">
+            <option value="reverse" selected>Flip the whole stack over → reverse sheet order</option>
+            <option value="same">Keep sheet order the same</option>
+          </select>
+          <div class="help">The default is the common manual-duplex workflow: print Side 1, flip the entire stack, then print Side 2.</div>
+        </div>
+        <div>
+          <label for="backRotation">Second-side orientation</label>
+          <select id="backRotation">
+            <option value="180" selected>Rotate 180° (common after flipping the stack)</option>
+            <option value="0">Do not rotate</option>
+          </select>
+          <div class="help">Use 180° when the back must be upside down relative to the first pass so it reads correctly after folding.</div>
+        </div>
+        <div class="switchrow">
+          <input id="foldMarks" type="checkbox" />
+          <div>
+            <label for="foldMarks" style="margin:0">Add a light center fold guide</label>
+            <div class="help">Optional. It prints a faint line at the center of every A4 sheet.</div>
+          </div>
+        </div>
+        <button class="primary" id="generate" disabled type="button">Generate the two print PDFs</button>
+        <div class="status" id="status">Choose a PDF to begin.</div>
+        <div id="downloads" style="display:none; margin-top:10px; gap:10px; flex-direction:column"></div>
+
+        <div class="note">
+          <strong>Printer-shop workflow</strong>
+          <div>1. Print <b>SIDE 1</b> on all A4 sheets.</div>
+          <div>2. Collect the complete stack.</div>
+          <div>3. Re-feed the stack according to the selected setting.</div>
+          <div>4. Print <b>SIDE 2</b> on the same sheets.</div>
+          <div>5. Fold each sheet through the middle, stack them, and staple along the fold.</div>
+          <div class="flow"><span class="pill">A4 landscape</span><span class="pill">2 pages per side</span><span class="pill">A5 finished book</span><span class="pill">4 logical pages / sheet</span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="footer">Your PDF is processed locally in the browser. Nothing is sent to a server by this app.</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script>
+(() => {
+  const { PDFDocument, rgb, degrees } = PDFLib;
+  const A4 = { w: 841.8898, h: 595.2756 };
+  const fileInput = document.getElementById('file');
+  const drop = document.getElementById('drop');
+  const filebox = document.getElementById('filebox');
+  const filename = document.getElementById('filename');
+  const clearBtn = document.getElementById('clearBtn');
+  const generateBtn = document.getElementById('generate');
+  const status = document.getElementById('status');
+  const stats = document.getElementById('stats');
+  const preview = document.getElementById('preview');
+  const sheetsPreview = document.getElementById('sheetsPreview');
+  const backOrder = document.getElementById('backOrder');
+  const backRotation = document.getElementById('backRotation');
+  const foldMarks = document.getElementById('foldMarks');
+  const downloads = document.getElementById('downloads');
+
+  let sourceBytes = null;
+  let sourceName = 'booklet';
+  let pageCount = 0;
+  let paddedCount = 0;
+
+  function setStatus(msg, type='') {
+    status.textContent = msg;
+    status.className = 'status' + (type ? ' ' + type : '');
+  }
+  function padded(n) { return Math.ceil(n / 4) * 4; }
+  function pageLabel(n) { return n == null ? 'Blank' : String(n); }
+
+  function impositionForSheet(sheet, total) {
+    // 1-indexed logical booklet page numbers.
+    return {
+      frontLeft: total - (2 * sheet),
+      frontRight: 1 + (2 * sheet),
+      backLeft: 2 + (2 * sheet),
+      backRight: total - 1 - (2 * sheet),
+    };
+  }
+
+  function sourceIndex(pageNumber) {
+    return pageNumber <= pageCount ? pageNumber - 1 : null;
+  }
+
+  function updatePreview() {
+    if (!pageCount) return;
+    const sheets = paddedCount / 4;
+    const show = Math.min(sheets, 4);
+    sheetsPreview.innerHTML = '';
+    for (let s = 0; s < show; s++) {
+      const x = impositionForSheet(s, paddedCount);
+      const box = document.createElement('div');
+      box.className = 'sheet';
+      box.innerHTML = `
+        <div class="sheettitle"><span>Physical sheet ${s + 1}</span><span>Side 1 / Side 2</span></div>
+        <div class="a4">
+          <div class="half"><div><div class="pnum">${x.frontLeft <= pageCount ? x.frontLeft : '—'}</div>${x.frontLeft > pageCount ? '<div class="pblank">blank</div>' : ''}</div></div>
+          <div class="half"><div><div class="pnum">${x.frontRight <= pageCount ? x.frontRight : '—'}</div>${x.frontRight > pageCount ? '<div class="pblank">blank</div>' : ''}</div></div>
+        </div>
+        <div class="help" style="margin-top:8px">Side 2: ${x.backLeft <= pageCount ? x.backLeft : 'blank'} | ${x.backRight <= pageCount ? x.backRight : 'blank'}</div>`;
+      sheetsPreview.appendChild(box);
+    }
+    if (sheets > show) {
+      const more = document.createElement('div');
+      more.className = 'help';
+      more.style.marginTop = '9px';
+      more.textContent = `…and ${sheets - show} more physical sheet(s).`;
+      sheetsPreview.appendChild(more);
+    }
+  }
+
+  async function loadFile(file) {
+    if (!file) return;
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      setStatus('Please choose a PDF file.', 'bad');
+      return;
+    }
+    setStatus('Reading the PDF…');
+    try {
+      sourceBytes = await file.arrayBuffer();
+      sourceName = file.name.replace(/\.pdf$/i, '') || 'booklet';
+      const doc = await PDFDocument.load(sourceBytes);
+      pageCount = doc.getPageCount();
+      paddedCount = padded(pageCount);
+      filename.textContent = file.name;
+      filebox.classList.add('show');
+      stats.style.display = 'grid';
+      preview.style.display = 'block';
+      document.getElementById('origPages').textContent = pageCount;
+      document.getElementById('bookPages').textContent = paddedCount;
+      document.getElementById('sheets').textContent = paddedCount / 4;
+      updatePreview();
+      generateBtn.disabled = false;
+      setStatus(pageCount === paddedCount ? 'Ready to generate.' : `Ready. ${paddedCount - pageCount} blank page(s) will be added to make the booklet divisible by 4.`, 'good');
+    } catch (err) {
+      console.error(err);
+      sourceBytes = null;
+      generateBtn.disabled = true;
+      setStatus('Could not read this PDF. Please use a normal PDF file.', 'bad');
+    }
+  }
+
+  function addDownload(bytes, name, label) {
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.textContent = label + '  ·  ' + name;
+    a.style.cssText = 'display:block;text-decoration:none;background:#111;color:#fff;border-radius:12px;padding:12px 14px;font-weight:800;text-align:center;';
+    downloads.appendChild(a);
+  }
+
+  function drawPageFitted(page, embedded) {
+    const halfW = A4.w / 2;
+    const srcW = embedded.width;
+    const srcH = embedded.height;
+    const scale = Math.min(halfW / srcW, A4.h / srcH);
+    const w = srcW * scale;
+    const h = srcH * scale;
+    const x = (halfW - w) / 2;
+    const y = (A4.h - h) / 2;
+    page.drawPage(embedded, { x, y, width:w, height:h });
+    return { x, y, w, h };
+  }
+
+  function foldGuide(page) {
+    page.drawLine({
+      start:{ x:A4.w/2, y:16 },
+      end:{ x:A4.w/2, y:A4.h-16 },
+      thickness:.5,
+      color:rgb(.78,.78,.80),
+      dashArray:[3,4]
+    });
+  }
+
+  async function buildOutput(srcDoc, mode) {
+    const out = await PDFDocument.create();
+    const embeddedCache = new Map();
+    const getEmbedded = async (idx) => {
+      if (idx == null) return null;
+      if (!embeddedCache.has(idx)) embeddedCache.set(idx, await out.embedPage(srcDoc.getPage(idx)));
+      return embeddedCache.get(idx);
+    };
+
+    const sheets = paddedCount / 4;
+    const order = Array.from({length:sheets}, (_,i)=>i);
+    if (mode === 'back' && backOrder.value === 'reverse') order.reverse();
+    const rotation = mode === 'back' ? Number(backRotation.value) : 0;
+
+    for (const s of order) {
+      const x = impositionForSheet(s, paddedCount);
+      const page = out.addPage([A4.w, A4.h]);
+      const leftNum = mode === 'front' ? x.frontLeft : x.backLeft;
+      const rightNum = mode === 'front' ? x.frontRight : x.backRight;
+      const left = await getEmbedded(sourceIndex(leftNum));
+      const right = await getEmbedded(sourceIndex(rightNum));
+      if (left) drawPageFitted(page, left);
+      if (right) {
+        const halfW = A4.w / 2;
+        // Reuse fitting math but shift into right half.
+        const srcW = right.width, srcH = right.height;
+        const scale = Math.min(halfW / srcW, A4.h / srcH);
+        const w = srcW * scale, h = srcH * scale;
+        const xPos = halfW + (halfW - w)/2, yPos = (A4.h-h)/2;
+        page.drawPage(right, { x:xPos, y:yPos, width:w, height:h });
+      }
+      if (foldMarks) foldGuide(page);
+      // Rotate the complete imposed sheet, not the embedded source pages.
+      // Rotating the embedded pages in-place can move their content outside the A4 canvas.
+      if (rotation) page.setRotation(degrees(rotation));
+    }
+    return await out.save({ useObjectStreams:true });
+  }
+
+  async function generate() {
+    if (!sourceBytes) return;
+    generateBtn.disabled = true;
+    setStatus('Creating the two print-ready PDFs…');
+    try {
+      const srcDoc = await PDFDocument.load(sourceBytes);
+      const frontBytes = await buildOutput(srcDoc, 'front');
+      setStatus('Creating SIDE 2…');
+      const backBytes = await buildOutput(srcDoc, 'back');
+
+      const safe = sourceName.replace(/[^a-z0-9._-]+/gi, '_') || 'booklet';
+      downloads.innerHTML = '';
+      downloads.style.display = 'flex';
+      addDownload(frontBytes, safe + '_SIDE-1.pdf', 'Download SIDE 1');
+      addDownload(backBytes, safe + '_SIDE-2.pdf', 'Download SIDE 2');
+      setStatus('Done. Download the two files below and give them to the printer.', 'good');
+    } catch (err) {
+      console.error(err);
+      setStatus('Generation failed. Try the PDF again, or use a smaller file.', 'bad');
+    } finally {
+      generateBtn.disabled = false;
+    }
+  }
+
+  drop.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => loadFile(fileInput.files[0]));
+  ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
+  drop.addEventListener('drop', e => loadFile(e.dataTransfer.files[0]));
+  clearBtn.addEventListener('click', () => {
+    sourceBytes = null; pageCount=0; paddedCount=0; fileInput.value='';
+    filebox.classList.remove('show'); stats.style.display='none'; preview.style.display='none';
+    sheetsPreview.innerHTML=''; downloads.innerHTML=''; downloads.style.display='none'; generateBtn.disabled=true; setStatus('Choose a PDF to begin.');
+  });
+  backOrder.addEventListener('change', updatePreview);
+  generateBtn.addEventListener('click', generate);
+})();
+</script>
+</body>
+</html>
