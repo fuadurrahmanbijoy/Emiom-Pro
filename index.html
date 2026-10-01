@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>A4 → Print-Ready A5 Booklet</title>
+  <meta name="description" content="Prepare an A4 PDF for A5 booklet printing: two-up, double-sided, automatic booklet imposition, blank-page padding, and print-ready export.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f6fa;
+      --panel: rgba(255,255,255,.92);
+      --text: #18202a;
+      --muted: #6a7480;
+      --line: #dce2e8;
+      --accent: #5a4ce8;
+      --accent-2: #806ef4;
+      --danger: #c43e3e;
+      --shadow: 0 18px 55px rgba(28,35,45,.09);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top left, #ffffff 0, var(--bg) 42%, #eef2f7 100%);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+    }
+    button, input, select { font: inherit; }
+    .app { max-width: 1180px; margin: 0 auto; padding: 30px 20px 44px; }
+    header { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; margin-bottom:24px; }
+    .eyebrow { color:var(--accent); font-size:12px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; }
+    h1 { margin:7px 0 6px; font-size:clamp(28px,4vw,44px); line-height:1.05; letter-spacing:-.035em; }
+    .sub { max-width:760px; color:var(--muted); line-height:1.6; margin:0; }
+    .pill { white-space:nowrap; border:1px solid var(--line); background:#fff; border-radius:999px; padding:9px 13px; color:#4f5964; font-size:12px; font-weight:700; }
+    .grid { display:grid; grid-template-columns: 1.18fr .82fr; gap:18px; }
+    .panel { background:var(--panel); border:1px solid rgba(220,226,232,.95); border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(16px); }
+    .panel-inner { padding:20px; }
+    .section-title { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px; }
+    .section-title h2 { margin:0; font-size:16px; letter-spacing:-.01em; }
+    .hint { color:var(--muted); font-size:12px; line-height:1.5; }
+    .dropzone {
+      border:1.5px dashed #bcc5d0; border-radius:18px; padding:30px 20px; text-align:center; cursor:pointer; transition:.2s ease;
+      background:linear-gradient(180deg,#fcfdff,#f7f9fb);
+    }
+    .dropzone:hover, .dropzone.drag { border-color:var(--accent); background:#faf9ff; transform:translateY(-1px); }
+    .drop-icon { width:54px; height:54px; border-radius:16px; margin:0 auto 12px; display:grid; place-items:center; background:#eeebff; color:var(--accent); font-size:24px; font-weight:800; }
+    .dropzone strong { display:block; margin-bottom:5px; }
+    .dropzone small { color:var(--muted); }
+    input[type=file] { display:none; }
+    .file-card { display:none; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; margin-top:12px; border:1px solid var(--line); border-radius:15px; background:#fff; }
+    .file-card.show { display:flex; }
+    .file-info { min-width:0; }
+    .file-name { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .file-meta { color:var(--muted); font-size:12px; margin-top:3px; }
+    .xbtn { border:0; background:#f1f3f6; color:#59636f; width:34px; height:34px; border-radius:10px; cursor:pointer; font-weight:800; }
+    .controls { display:grid; gap:12px; }
+    .seg { display:grid; grid-template-columns:1fr 1fr; padding:4px; background:#eef1f5; border-radius:13px; }
+    .seg button { border:0; background:transparent; color:#64707c; padding:10px 9px; border-radius:9px; cursor:pointer; font-size:13px; font-weight:700; }
+    .seg button.active { background:#fff; color:var(--text); box-shadow:0 3px 12px rgba(27,33,42,.08); }
+    .field { padding:12px 13px; border:1px solid var(--line); border-radius:14px; background:#fff; }
+    .field label { display:flex; justify-content:space-between; gap:10px; font-size:13px; font-weight:700; margin-bottom:8px; }
+    .field label span { color:var(--muted); font-weight:500; }
+    .field select, .field input[type=number] { width:100%; border:1px solid #d7dde4; border-radius:10px; padding:9px 10px; background:#fbfcfd; color:var(--text); outline:none; }
+    .field input[type=range] { width:100%; }
+    .check { display:flex; align-items:flex-start; gap:10px; cursor:pointer; }
+    .check input { margin-top:2px; accent-color:var(--accent); }
+    .check strong { font-size:13px; display:block; }
+    .check span { display:block; margin-top:3px; color:var(--muted); font-size:12px; line-height:1.45; }
+    .actions { display:flex; gap:10px; margin-top:4px; }
+    .btn { border:0; border-radius:13px; padding:12px 15px; cursor:pointer; font-weight:800; font-size:13px; }
+    .btn.primary { background:var(--accent); color:#fff; box-shadow:0 9px 24px rgba(90,76,232,.22); flex:1; }
+    .btn.primary:disabled { opacity:.45; cursor:not-allowed; box-shadow:none; }
+    .btn.secondary { background:#eef1f5; color:#47515c; }
+    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:14px; }
+    .stat { padding:12px; border:1px solid var(--line); border-radius:14px; background:#fff; }
+    .stat small { display:block; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.08em; font-weight:800; }
+    .stat strong { display:block; margin-top:5px; font-size:20px; letter-spacing:-.03em; }
+    .info { margin-top:12px; padding:12px 13px; border-radius:14px; background:#f7f8fb; border:1px solid #e6e9ee; color:#5d6670; font-size:12px; line-height:1.55; }
+    .preview-box { background:#16191e; border-radius:18px; min-height:370px; display:grid; place-items:center; padding:20px; overflow:hidden; }
+    .sheet { width:min(100%,620px); aspect-ratio:297/210; background:#fff; box-shadow:0 16px 35px rgba(0,0,0,.24); display:grid; grid-template-columns:1fr 1fr; position:relative; }
+    .sheet::before { content:""; position:absolute; left:50%; top:4%; bottom:4%; width:1px; background:#d7d7d7; z-index:2; }
+    .half { position:relative; display:grid; place-items:center; padding:5%; }
+    .page-mini { width:calc(100% - 18%); height:calc(100% - 8%); border:1px solid #dfe3e8; background:linear-gradient(180deg,#fbfbfa,#f3f4f4); position:relative; overflow:hidden; }
+    .page-mini .bar { width:58%; height:5px; background:#dfe3e7; position:absolute; left:12%; top:10%; border-radius:4px; }
+    .page-mini .lines { position:absolute; left:12%; right:12%; top:23%; bottom:12%; background:repeating-linear-gradient(to bottom, #d9dde1 0 2px, transparent 2px 11px); opacity:.8; }
+    .page-num { position:absolute; bottom:6%; left:0; right:0; text-align:center; font-size:10px; color:#7b8187; font-weight:700; }
+    .legend { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+    .legend-item { border:1px solid var(--line); border-radius:12px; padding:9px 10px; font-size:11px; background:#fff; color:#69727d; }
+    .status { margin-top:14px; display:none; }
+    .status.show { display:block; }
+    .progress { height:8px; border-radius:999px; overflow:hidden; background:#e9edf2; }
+    .progress > div { width:0; height:100%; background:linear-gradient(90deg,var(--accent),var(--accent-2)); transition:width .18s ease; }
+    .status-line { display:flex; justify-content:space-between; gap:12px; font-size:12px; color:var(--muted); margin-bottom:7px; }
+    .error { display:none; margin-top:12px; border:1px solid #efcccc; background:#fff4f4; color:var(--danger); border-radius:13px; padding:11px 12px; font-size:12px; line-height:1.5; }
+    .error.show { display:block; }
+    footer { margin-top:18px; color:#7b848e; text-align:center; font-size:11px; line-height:1.6; }
+    @media (max-width: 900px) { .grid{grid-template-columns:1fr;} }
+    @media (max-width: 600px) { .app{padding:20px 12px 32px;} header{align-items:flex-start; flex-direction:column;} .stats{grid-template-columns:1fr 1fr;} .actions{flex-direction:column;} }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div>
+        <div class="eyebrow">Print preparation</div>
+        <h1>A4 → A5 Booklet</h1>
+        <p class="sub">Turn an A4 PDF into a print-ready A5 booklet. Everything runs in your browser; your PDF is processed locally and is never uploaded.</p>
+      </div>
+      <div class="pill">No server • Local processing</div>
+    </header>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-inner">
+          <div class="section-title">
+            <h2>1. Add your PDF</h2>
+            <span class="hint">A4 portrait recommended</span>
+          </div>
+          <div class="dropzone" id="dropzone">
+            <div class="drop-icon">↑</div>
+            <strong>Drop your PDF here</strong>
+            <small>or click to browse • 100% browser-side</small>
+            <input id="file" type="file" accept="application/pdf">
+          </div>
+          <div class="file-card" id="fileCard">
+            <div class="file-info">
+              <div class="file-name" id="fileName">—</div>
+              <div class="file-meta" id="fileMeta">—</div>
+            </div>
+            <button class="xbtn" id="removeFile" title="Remove PDF">×</button>
+          </div>
+          <div class="error" id="error"></div>
+        </div>
+
+        <div class="panel-inner" style="padding-top:0">
+          <div class="section-title">
+            <h2>2. Choose the print arrangement</h2>
+          </div>
+          <div class="controls">
+            <div class="seg" id="modeSeg">
+              <button data-mode="booklet" class="active">Booklet</button>
+              <button data-mode="twoup">2-up sheets</button>
+            </div>
+
+            <div class="field">
+              <label><span>Safe margin</span><span id="marginValue">3 mm</span></label>
+              <input id="margin" type="range" min="0" max="10" step="0.5" value="3">
+              <div class="hint" style="margin-top:6px">Shrinks each A5 page slightly inward to reduce clipping near printer edges.</div>
+            </div>
+
+            <div class="field check">
+              <span><strong>Automatic booklet padding</strong><span>If the page count is not divisible by 4, the tool adds blank pages at the end automatically. A 50-page PDF therefore becomes 52 booklet pages.</span></span>
+            </div>
+
+            <div class="field" id="twoupOptions" style="display:none">
+              <label><span>2-up page order</span></label>
+              <select id="twoupOrder">
+                <option value="horizontal">1 | 2, 3 | 4, 5 | 6 …</option>
+                <option value="vertical">1 | 2 in reading order, landscape sheet</option>
+              </select>
+              <div class="hint" style="margin-top:7px">For normal double-sided 2-up printing, keep your printer's duplex edge set to short edge for landscape output.</div>
+            </div>
+
+            <div class="info" id="modeInfo"><strong>Booklet mode:</strong> pages are automatically rearranged so folding the A4 sheets produces a normal A5 book: 52,1 on the first front, then 2,51 on the back, etc.</div>
+            <div class="actions">
+              <button class="btn secondary" id="reset">Reset</button>
+              <button class="btn primary" id="build" disabled>Build print-ready PDF</button>
+            </div>
+            <div class="status" id="status">
+              <div class="status-line"><span id="statusText">Preparing…</span><span id="statusPct">0%</span></div>
+              <div class="progress"><div id="progressBar"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-inner">
+          <div class="section-title">
+            <h2>3. Check the result</h2>
+            <span class="hint">A4 landscape sheets</span>
+          </div>
+          <div class="preview-box">
+            <div class="sheet" id="sheetPreview" aria-label="Print layout preview">
+              <div class="half"><div class="page-mini"><div class="bar"></div><div class="lines"></div><div class="page-num" id="leftNum">52</div></div></div>
+              <div class="half"><div class="page-mini"><div class="bar"></div><div class="lines"></div><div class="page-num" id="rightNum">1</div></div></div>
+            </div>
+          </div>
+          <div class="stats">
+            <div class="stat"><small>PDF pages</small><strong id="statPages">—</strong></div>
+            <div class="stat"><small>Booklet pages</small><strong id="statPadded">—</strong></div>
+            <div class="stat"><small>A4 sheets</small><strong id="statSheets">—</strong></div>
+            <div class="stat"><small>Scale</small><strong id="statScale">70.7%</strong></div>
+          </div>
+          <div class="legend" id="sheetLegend">
+            <div class="legend-item"><strong>Front</strong><br>last page | first page</div>
+            <div class="legend-item"><strong>Back</strong><br>second page | second-last</div>
+          </div>
+          <div class="info" style="margin-top:12px"><strong>Printing:</strong> print the exported PDF at <strong>Actual size / 100%</strong>. Do not use “Fit” or “Shrink oversized pages” in the printer dialog, or the A5 size will change.</div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Built for local browser use. The source PDF never leaves this page. Uses pdf-lib for PDF generation.
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script>
+    const { PDFDocument } = PDFLib;
+
+    const A4_W = 841.8898; // pt, landscape
+    const A4_H = 595.2756;
+    const MM = 72 / 25.4;
+    const SLOT_W = A4_W / 2;
+
+    const $ = (id) => document.getElementById(id);
+    const state = { file: null, bytes: null, sourcePdf: null, mode: 'booklet', marginMm: 3 };
+
+    const fileInput = $('file');
+    const dropzone = $('dropzone');
+    const fileCard = $('fileCard');
+    const buildBtn = $('build');
+    const errorBox = $('error');
+
+    function showError(message) {
+      errorBox.textContent = message;
+      errorBox.classList.add('show');
+    }
+    function clearError() { errorBox.textContent = ''; errorBox.classList.remove('show'); }
+
+    function fmtBytes(bytes) {
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    function paddedCount(n) {
+      return Math.ceil(n / 4) * 4;
+    }
+
+    function layoutPages(count, mode) {
+      if (mode === 'twoup') {
+        const result = [];
+        for (let i = 1; i <= count; i += 2) result.push([i, i + 1 <= count ? i + 1 : null]);
+        return result;
+      }
+      const sheets = count / 4;
+      const result = [];
+      for (let s = 0; s < sheets; s++) {
+        const low = 2 * s + 1;
+        const high = count - 2 * s;
+        result.push({ front: [high, low], back: [low + 1, high - 1] });
+      }
+      return result;
+    }
+
+    function updateStats() {
+      const n = state.file ? state.sourcePdf?.getPageCount?.() : null;
+      if (!n) {
+        $('statPages').textContent = '—';
+        $('statPadded').textContent = '—';
+        $('statSheets').textContent = '—';
+        return;
+      }
+      const padded = state.mode === 'booklet' ? paddedCount(n) : n;
+      const sheets = state.mode === 'booklet' ? padded / 4 : Math.ceil(n / 2);
+      $('statPages').textContent = n;
+      $('statPadded').textContent = padded;
+      $('statSheets').textContent = sheets;
+      const scale = calculateScale(state.marginMm);
+      $('statScale').textContent = `${(scale * 100).toFixed(1)}%`;
+      updatePreview();
+    }
+
+    function calculateScale(marginMm) {
+      const m = marginMm * MM;
+      const availW = SLOT_W - (2 * m);
+      const availH = A4_H - (2 * m);
+      return Math.min(availW / 595.2756, availH / 841.8898);
+    }
+
+    function updatePreview() {
+      const n = state.file ? state.sourcePdf.getPageCount() : 52;
+      const padded = state.mode === 'booklet' ? paddedCount(n) : n;
+      if (state.mode === 'booklet') {
+        const p = layoutPages(padded, 'booklet')[0];
+        $('leftNum').textContent = p.front[0];
+        $('rightNum').textContent = p.front[1];
+        $('sheetLegend').innerHTML = `<div class="legend-item"><strong>Front</strong><br>${p.front[0]} | ${p.front[1]}</div><div class="legend-item"><strong>Back</strong><br>${p.back[0]} | ${p.back[1]}</div>`;
+      } else {
+        const p = layoutPages(n, 'twoup')[0];
+        $('leftNum').textContent = p[0] ?? '—';
+        $('rightNum').textContent = p[1] ?? '—';
+        $('sheetLegend').innerHTML = `<div class="legend-item"><strong>Sheet</strong><br>${p[0] ?? '—'} | ${p[1] ?? '—'}</div><div class="legend-item"><strong>Output</strong><br>landscape A4</div>`;
+      }
+    }
+
+    function setFile(file) {
+      if (!file) return;
+      if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+        showError('Please choose a PDF file.'); return;
+      }
+      clearError();
+      state.file = file;
+      $('fileName').textContent = file.name;
+      $('fileMeta').textContent = `${fmtBytes(file.size)} • loading…`;
+      fileCard.classList.add('show');
+      buildBtn.disabled = true;
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          state.bytes = new Uint8Array(reader.result);
+          state.sourcePdf = await PDFDocument.load(state.bytes, { ignoreEncryption: false });
+          const count = state.sourcePdf.getPageCount();
+          $('fileMeta').textContent = `${fmtBytes(file.size)} • ${count} page${count === 1 ? '' : 's'}`;
+          buildBtn.disabled = false;
+          updateStats();
+        } catch (err) {
+          console.error(err);
+          showError('Could not read this PDF. It may be encrypted, damaged, or unsupported.');
+          resetFile();
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function resetFile() {
+      state.file = null; state.bytes = null; state.sourcePdf = null;
+      fileInput.value = '';
+      fileCard.classList.remove('show');
+      buildBtn.disabled = true;
+      $('statPages').textContent = '—'; $('statPadded').textContent = '—'; $('statSheets').textContent = '—';
+      updatePreview();
+    }
+
+    async function buildPdf() {
+      if (!state.sourcePdf) return;
+      clearError();
+      $('status').classList.add('show');
+      setProgress(2, 'Preparing source pages…');
+      buildBtn.disabled = true;
+      try {
+        const source = state.sourcePdf;
+        const sourcePages = source.getPages();
+        const originalCount = sourcePages.length;
+        const targetCount = state.mode === 'booklet' ? paddedCount(originalCount) : originalCount;
+
+        // Import all real source pages once. This keeps generation deterministic and fast.
+        const out = await PDFDocument.create();
+        const embedded = [];
+        for (let i = 0; i < originalCount; i++) {
+          embedded.push(await out.embedPage(sourcePages[i]));
+          setProgress(5 + ((i + 1) / originalCount) * 30, `Embedding source page ${i + 1} of ${originalCount}…`);
+        }
+
+        const margin = Number(state.marginMm) * MM;
+        const availW = SLOT_W - margin * 2;
+        const availH = A4_H - margin * 2;
+
+        function drawSlot(page, pageNumber, side) {
+          if (!pageNumber || pageNumber > originalCount) return;
+          const embeddedPage = embedded[pageNumber - 1];
+          const sourceW = embeddedPage.width;
+          const sourceH = embeddedPage.height;
+          const scale = Math.min(availW / sourceW, availH / sourceH);
+          const drawW = sourceW * scale;
+          const drawH = sourceH * scale;
+          const xOffset = (SLOT_W - drawW) / 2;
+          const yOffset = (A4_H - drawH) / 2;
+          const x = side === 'left' ? xOffset : SLOT_W + xOffset;
+          page.drawPage(embeddedPage, { x, y: yOffset, width: drawW, height: drawH });
+        }
+
+        if (state.mode === 'booklet') {
+          const sheets = targetCount / 4;
+          for (let s = 0; s < sheets; s++) {
+            const low = 2 * s + 1;
+            const high = targetCount - 2 * s;
+
+            const front = out.addPage([A4_W, A4_H]);
+            drawSlot(front, high, 'left');
+            drawSlot(front, low, 'right');
+
+            const back = out.addPage([A4_W, A4_H]);
+            drawSlot(back, low + 1, 'left');
+            drawSlot(back, high - 1, 'right');
+
+            setProgress(35 + ((s + 1) / sheets) * 55, `Imposing sheet ${s + 1} of ${sheets}…`);
+          }
+        } else {
+          const sheets = Math.ceil(targetCount / 2);
+          for (let i = 0; i < sheets; i++) {
+            const a = i * 2 + 1;
+            const b = a + 1;
+            const page = out.addPage([A4_W, A4_H]);
+            drawSlot(page, a, 'left');
+            drawSlot(page, b, 'right');
+            setProgress(35 + ((i + 1) / sheets) * 55, `Laying out sheet ${i + 1} of ${sheets}…`);
+          }
+        }
+
+        out.setTitle('A5 Booklet - print ready');
+        out.setSubject(`Prepared from ${state.file.name}`);
+        out.setProducer('A4 to A5 Booklet Web Tool');
+        const bytes = await out.save({ useObjectStreams: true });
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        setProgress(100, 'Finished. Your print-ready PDF is ready.');
+
+        const a = document.createElement('a');
+        a.href = url;
+        const clean = state.file.name.replace(/\.pdf$/i, '');
+        a.download = `${clean}-print-ready-${state.mode === 'booklet' ? 'A5-booklet' : 'A5-2up'}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      } catch (err) {
+        console.error(err);
+        showError(`Could not generate the output PDF: ${err?.message || err}`);
+        setProgress(0, 'Generation failed.');
+      } finally {
+        buildBtn.disabled = !state.sourcePdf;
+        setTimeout(() => $('status').classList.remove('show'), 1800);
+      }
+    }
+
+    function setProgress(percent, label) {
+      $('progressBar').style.width = `${Math.max(0, Math.min(100, percent))}%`;
+      $('statusPct').textContent = `${Math.round(percent)}%`;
+      $('statusText').textContent = label;
+    }
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', e => setFile(e.target.files?.[0]));
+    ['dragenter','dragover'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
+    ['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('drag'); }));
+    dropzone.addEventListener('drop', e => setFile(e.dataTransfer.files?.[0]));
+    $('removeFile').addEventListener('click', resetFile);
+    $('reset').addEventListener('click', () => { resetFile(); state.mode='booklet'; state.marginMm=3; $('margin').value=3; $('marginValue').textContent='3 mm'; document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('active', b.dataset.mode === 'booklet')); $('twoupOptions').style.display='none'; $('modeInfo').innerHTML='<strong>Booklet mode:</strong> pages are automatically rearranged so folding the A4 sheets produces a normal A5 book: last,1 on the first front; 2,second-last on the back; and so on.'; updateStats(); });
+    document.querySelectorAll('#modeSeg button').forEach(btn => btn.addEventListener('click', () => {
+      state.mode = btn.dataset.mode;
+      document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('active', b === btn));
+      $('twoupOptions').style.display = state.mode === 'twoup' ? 'block' : 'none';
+      $('modeInfo').innerHTML = state.mode === 'booklet'
+        ? '<strong>Booklet mode:</strong> pages are automatically rearranged so folding the A4 sheets produces a normal A5 book: last,1 on the first front; 2,second-last on the back; and so on.'
+        : '<strong>2-up mode:</strong> consecutive A4 pages are placed side by side on landscape A4 sheets. No booklet reordering is performed.';
+      updateStats();
+    }));
+    $('margin').addEventListener('input', e => { state.marginMm = Number(e.target.value); $('marginValue').textContent = `${state.marginMm} mm`; updateStats(); });
+    $('build').addEventListener('click', buildPdf);
+
+    updatePreview();
+  </script>
+</body>
+</html>
