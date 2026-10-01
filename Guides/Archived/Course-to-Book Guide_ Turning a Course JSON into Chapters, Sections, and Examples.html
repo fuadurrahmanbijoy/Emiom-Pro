@@ -1,0 +1,227 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}</style><style>:root{color-scheme:light dark;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}}:root[data-theme="dark"]{color-scheme:dark;--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}:root[data-theme="light"]{color-scheme:light}@media print{:root,:root[data-theme="dark"]{color-scheme:light;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}}body{background:var(--md-bg);color:var(--md-text);max-width:720px;margin:0 auto;padding:32px;display:flex;flex-direction:column;gap:10px;font:14px/1.55 -apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',sans-serif;overflow-wrap:break-word}body>:first-child{margin-top:0}h1,h2,h3,h4,h5,h6{margin:6px 0 0;line-height:1.25;font-weight:600;text-wrap:balance}h1{font-size:1.35em}h2{font-size:1.15em;color:var(--md-muted)}h3,h4,h5,h6{font-size:1em}p,ul,ol,blockquote,table,pre,hr{margin:0}strong{font-weight:600}a{color:var(--md-link);text-decoration:none}a:hover{text-decoration:underline}ul,ol{display:flex;flex-direction:column;gap:6px;padding-left:22px}ul{list-style:disc}ol{list-style:decimal}:is(li,td,th)>*+:is(p,ul,ol,blockquote){margin-top:6px}blockquote{display:flex;flex-direction:column;gap:10px;border-left:2px solid var(--md-rule);padding-left:10px;color:var(--md-muted)}:not(pre)>code{background:var(--md-fill);padding:1px 3px;border-radius:4px;font:.92em 'SF Mono',ui-monospace,Menlo,Consolas,monospace}a>code{background:none;color:inherit}pre{background:var(--md-fill);padding:10px 12px;border-radius:6px;overflow-x:auto;font:12px/1.5 'SF Mono',ui-monospace,Menlo,Consolas,monospace;margin-block:4px}pre code{background:none;padding:0;font:inherit}table{width:100%;border-collapse:separate;border-spacing:2px;font:inherit}th,td{padding:6px 8px;border-radius:3px;text-align:left;vertical-align:top}th{background:var(--md-fill-strong);font-weight:600}td{background:var(--md-fill)}:is(th,td) :not(pre)>code{background:transparent}hr{border:0;border-top:1px solid var(--md-rule-strong);margin-block:10px}img{max-width:100%;height:auto;border-radius:4px}</style>
+</head><body>
+<h1>Course-to-Book Guide: Turning a Course JSON into Chapters, Sections, and Examples</h1>
+<p><em>A procedure for processing a course JSON (course details, learning objectives, topics, past questions) into the plan for a book. Works alongside the Visual, Intellectual, and Beginner guides. Every decision below comes from your answers.</em></p>
+<hr>
+<h2>1. The Central Rule: The Back Story Never Shows</h2>
+<p>The objectives, topics, and past questions are the <strong>muse</strong>, not the contents. They shape the book from behind the scenes and never appear in it.</p>
+<p><strong>The book must never contain:</strong></p>
+<ul>
+<li>Objective numbers or labels (&quot;CLO 2&quot;, &quot;Learning objective 4&quot;)</li>
+<li>Topic lists copied from the course outline</li>
+<li>Mentions of past papers, exam years, marks, or &quot;frequently asked&quot; questions</li>
+<li>Any question copied word for word</li>
+</ul>
+<p><strong>What the reader sees</strong> is a coherent book that happens to cover everything they need. The scaffolding lives in separate working documents (section 9), which are never printed.</p>
+<hr>
+<h2>2. The Two Promises the Book Makes</h2>
+<ol>
+<li><strong>Complete coverage.</strong> Every topic in the JSON is covered somewhere, with the idea built completely and soundly.</li>
+<li><strong>Answerability.</strong> A student who reads the book carefully can answer any past question, and any fresh question of the same kind.</li>
+</ol>
+<p>Everything else is a means to these two promises.</p>
+<hr>
+<h2>3. The Process, Step by Step</h2>
+<h3>Step 1: Take inventory</h3>
+<p>Read the JSON and list, without judging:</p>
+<ul>
+<li>Every objective, with its topics beneath it.</li>
+<li>Every question, with whatever fields exist (year, marks, type, linked topic).</li>
+<li>Fields that are missing. Never invent data; note gaps and proceed.</li>
+</ul>
+<h3>Step 2: Flatten the topics</h3>
+<p>Make one flat list of every topic, noting its parent objective. Mark <strong>duplicates and overlaps</strong>: the same topic appearing under different objectives, or topics that are halves of one idea.</p>
+<h3>Step 3: Profile the questions</h3>
+<p>For each question, record:</p>
+<ul>
+<li><strong>Type:</strong> definition, calculation, short explanation, essay, case analysis, or another kind found in the data.</li>
+<li><strong>Topic or topics tested.</strong></li>
+<li><strong>Skill needed</strong> (recall, apply a formula, interpret, compare, evaluate).</li>
+<li><strong>Frequency</strong> of the topic and the skill across the years.</li>
+</ul>
+<p>Group near-identical questions from different years into <strong>question families</strong>.</p>
+<h3>Step 4: Map questions to topics</h3>
+<ul>
+<li>Each question points to at least one topic.</li>
+<li><strong>A question that fits no topic</strong> is covered <strong>fully</strong> in the most natural section of the book, and the list of topics is extended to include it. Note it in the working documents.</li>
+<li><strong>A topic with no questions</strong> is still covered fully. Coverage follows topics, not questions.</li>
+</ul>
+<h3>Step 5: Break topics into concepts</h3>
+<p>A topic often holds several concepts. List each one as a single teachable idea, and note what each concept needs from earlier ones. This gives a <strong>dependency map</strong>: which idea must come before which.</p>
+<h3>Step 6: Decide what the beginner needs first</h3>
+<p>Look for ideas the first topic quietly assumes. Where an absolute beginner would be lost, add <strong>foundation chapters or bridging sections</strong> at the start or before the concept that needs them. These are encouraged, and they do not come from the JSON.</p>
+<h3>Step 7: Build the chapters</h3>
+<ul>
+<li>Objectives are <strong>inspiration, not structure.</strong> One objective does not become one chapter.</li>
+<li><strong>Merge small objectives and split large ones</strong> by size and dependency.</li>
+<li><strong>Regroup freely by teaching logic</strong>, then check afterward that every objective is covered.</li>
+<li>Order chapters by <strong>dependency</strong>, so nothing appears before its time, even where this differs from the JSON order.</li>
+<li>Target about 8,000-12,000 words per chapter, per the Intellectual Guide.</li>
+<li>Give each chapter a <strong>working title in ordinary book language</strong>, never objective language.</li>
+</ul>
+<h3>Step 8: Build the sections</h3>
+<ul>
+<li>Sections follow the <strong>best teaching order</strong>, not the topic list.</li>
+<li><strong>Merge related topics</strong> into one section by theme; absorb small topics into larger ones.</li>
+<li>Add bridging sections where a beginner needs a step the JSON skips.</li>
+<li>Aim for 3-6 sections per chapter.</li>
+<li><strong>Every topic must appear</strong> in some section, built completely and soundly.</li>
+</ul>
+<h3>Step 9: Handle overlaps</h3>
+<p>When a topic appears under more than one objective:</p>
+<ol>
+<li><strong>Teach it fully once</strong>, in the best place.</li>
+<li><strong>Revisit it briefly from a new point of view</strong> wherever it returns, taking the chance to show the idea from another side, with a short recall note in the side column.</li>
+</ol>
+<h3>Step 10: Plan the examples and practice</h3>
+<p>See sections 5 and 6.</p>
+<h3>Step 11: Check coverage silently</h3>
+<p>See section 7.</p>
+<hr>
+<h2>4. Content Weight: Frequency Does Not Decide It</h2>
+<p>The <strong>size and emphasis</strong> of any content in the book is decided by two things only: the <strong>importance of the idea</strong> within the subject, and how <strong>difficult it is for a beginner</strong>, as laid out in the Intellectual and Beginner guides.</p>
+<p><strong>Question frequency and importance never enlarge or shrink a topic.</strong> A topic that appears in every past paper gets the same depth it would get if it never appeared.</p>
+<p>Frequency and question profile affect <strong>only two things</strong>: the <strong>examples</strong> and the <strong>end-of-chapter practice</strong>.</p>
+<hr>
+<h2>5. Building the Examples: The Adaptation Ladder</h2>
+<p>Past questions become <strong>fresh worked examples</strong>, never copies. For each concept that past questions test, build a ladder of examples that helps the learner adapt and migrate step by step:</p>
+<table>
+<thead>
+<tr>
+<th>Rung</th>
+<th>What changes</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1. Familiar</strong></td>
+<td>The same skill and structure as the question family, with <strong>new numbers</strong></td>
+<td>Recognise the pattern and learn the method</td>
+</tr>
+<tr>
+<td><strong>2. Reshaped</strong></td>
+<td>Numbers <strong>and shape</strong> changed (the unknown sits elsewhere, the order is reversed, an extra step added)</td>
+<td>Show the method is not a script</td>
+</tr>
+<tr>
+<td><strong>3. New setting</strong></td>
+<td>A <strong>new scenario</strong>, drawn from the running business or a historical case</td>
+<td>Transfer the method to unfamiliar ground</td>
+</tr>
+<tr>
+<td><strong>4. Advanced</strong></td>
+<td><strong>Higher complexity</strong>, combining the concept with ones learned earlier</td>
+<td>Prepare for harder questions</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rules</strong></p>
+<ul>
+<li>Examples progress from <strong>familiar to unfamiliar</strong>, using what the learner already knows to carry them forward.</li>
+<li>High-frequency question families receive <strong>more rungs and more examples</strong>. This is the only way frequency enters the body of the book.</li>
+<li>Every worked example follows the standard layout (Given, Find, Formula, Steps, Answer, Check).</li>
+<li>No scenario may be recognisable as a particular past question.</li>
+<li>Examples live naturally inside the running business or a verified historical case, not as stand-alone exam questions.</li>
+</ul>
+<hr>
+<h2>6. End-of-Chapter Practice</h2>
+<p>Practice is where the question bank shows most clearly, though never by name.</p>
+<ol>
+<li><strong>Question types decide the formats offered.</strong> If the past questions include definitions, calculations, short explanations, essays, and case analyses, the practice includes all of these, in similar proportion to what students will face.</li>
+<li><strong>Frequency decides how much practice</strong> a topic receives, so commonly tested skills get more problems.</li>
+<li><strong>Difficulty climbs</strong> within each set, following the ladder in section 5.</li>
+<li>Every practice set works with the closing features from the Intellectual Guide: review questions with short answers at the back, and a &quot;Think it through&quot; problem.</li>
+<li>No practice question is copied from the bank; each is newly written.</li>
+<li>Test that the practice covers <strong>every question type</strong> found in the bank.</li>
+</ol>
+<hr>
+<h2>7. The Silent Coverage Check</h2>
+<p>Before writing, and again after drafting, trace every past question through the plan:</p>
+<ol>
+<li>Which concepts does the question need?</li>
+<li>Are those concepts taught in the book, with the definition, method, and an example that a beginner can follow?</li>
+<li>Could a careful reader answer the question using only the book?</li>
+</ol>
+<p>If not, fix the book: add the missing idea in the most natural section. Repeat the same test for every topic and every objective to confirm nothing was dropped.</p>
+<p>This check is <strong>recorded in the working documents only.</strong></p>
+<hr>
+<h2>8. Final Clean-Out</h2>
+<p>Before the book is considered finished, scan it for any trace of the back story:</p>
+<ul>
+<li>No objective labels or numbers.</li>
+<li>No exam years, paper names, marks, or frequency remarks.</li>
+<li>No copied questions.</li>
+<li>No section titles that read like syllabus lines.</li>
+</ul>
+<p>Generic advice about studying for exams may appear in the opening &quot;How to use this book&quot; note, but nowhere else.</p>
+<hr>
+<h2>9. Working Documents (Never Printed)</h2>
+<ol>
+<li><strong>Inventory:</strong> every objective, topic, and question as found.</li>
+<li><strong>Question profile:</strong> types, skills, frequencies, question families.</li>
+<li><strong>Concept map:</strong> concepts, prerequisites, and dependency order.</li>
+<li><strong>Chapter blueprint:</strong> one entry per chapter, using the template below.</li>
+<li><strong>Coverage matrix:</strong> every question, topic, and objective traced to the sections that cover it.</li>
+<li><strong>Log of decisions:</strong> added topics, merged topics, unmapped questions, flagged gaps.</li>
+</ol>
+<p><strong>Chapter blueprint entry</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Working title</td>
+<td>In ordinary book language</td>
+</tr>
+<tr>
+<td>Purpose</td>
+<td>One sentence on what the reader can do after this chapter</td>
+</tr>
+<tr>
+<td>Needs from earlier chapters</td>
+<td>Prerequisite ideas</td>
+</tr>
+<tr>
+<td>Sections</td>
+<td>Ordered list, each with its concepts</td>
+</tr>
+<tr>
+<td>Running business step</td>
+<td>The decision or event the case file covers here</td>
+</tr>
+<tr>
+<td>Historical case</td>
+<td>A verified candidate, with source</td>
+</tr>
+<tr>
+<td>Overlap revisits</td>
+<td>Earlier ideas revisited from a new angle</td>
+</tr>
+<tr>
+<td>Example ladder plan</td>
+<td>Concepts, rungs, and number of examples</td>
+</tr>
+<tr>
+<td>Practice plan</td>
+<td>Question types and quantities, with difficulty climb</td>
+</tr>
+<tr>
+<td>Notes</td>
+<td>Anything to flag</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>10. Open Choices Still to Confirm</h2>
+<ul>
+<li>The format of the working documents (a spreadsheet for the inventory, profile, and coverage matrix is recommended).</li>
+<li>How many rungs of the ladder to build for ordinary concepts, and how many extra for high-frequency ones.</li>
+<li>Whether foundation chapters appear as numbered chapters or as a clearly marked &quot;Before You Begin&quot; part.</li>
+</ul>
+
+</body></html>
